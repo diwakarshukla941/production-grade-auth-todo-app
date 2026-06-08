@@ -9,6 +9,9 @@ const __fileName = fileURLToPath(import.meta.url);
 const __dir = path.dirname(__fileName);
 
 export const verifyEmail = async (token, email) => {
+  console.log("verifyEmail called");
+  console.log("Sending mail to:", email);
+
   try {
     const emailTemplateSource = fs.readFileSync(
       path.join(__dir, "template.hbs"),
@@ -36,7 +39,6 @@ export const verifyEmail = async (token, email) => {
       },
     });
 
-    // Verify SMTP connection
     await transporter.verify();
     console.log("SMTP connection successful");
 
@@ -52,8 +54,8 @@ export const verifyEmail = async (token, email) => {
 
     return true;
   } catch (error) {
-  console.error("Full Email Error:");
-  console.error(error);
-  return false;
-}
+    console.error("Full Email Error:");
+    console.error(error);
+    return false;
+  }
 };
