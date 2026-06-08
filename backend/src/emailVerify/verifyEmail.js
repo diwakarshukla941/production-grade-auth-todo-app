@@ -52,7 +52,8 @@ export const verifyEmail = async (token, email) => {
 
     return true;
   } catch (error) {
-    console.error("Email Error:", error.message);
-    return false;
-  }
+  console.error("Full Email Error:");
+  console.error(error);
+  return false;
+}
 };
