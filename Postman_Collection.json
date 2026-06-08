@@ -1,0 +1,405 @@
+{
+  "info": {
+    "_postman_id": "production-grade-auth-collection",
+    "name": "Production Grade Auth - Complete API",
+    "description": "Complete API collection for authentication and todo management system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/register",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user. Sends verification email to the provided email address. If email already exists but is not verified, resends verification email with new token."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login with email and password. User must be verified first. Returns accessToken and refreshToken."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{VERIFICATION_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/verify",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify"
+              ]
+            },
+            "description": "Verify email using token received in verification email. Token should be passed in Authorization header as Bearer token. Sets isVerified to true."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/logout",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout user by invalidating session. Requires valid accessToken in Authorization header."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/forgot-password",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Initiate password reset. Generates OTP and sends it via email. OTP is valid for 10 minutes."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/verify-otp/john@example.com",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-otp",
+                "john@example.com"
+              ]
+            },
+            "description": "Verify OTP received in email. Email must be passed in URL path. OTP must match and not be expired."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NewSecurePass456\",\n  \"confirmPassword\": \"NewSecurePass456\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/change-password/john@example.com",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password",
+                "john@example.com"
+              ]
+            },
+            "description": "Change password after OTP verification. Email must be passed in URL path. Both passwords must match. User's OTP must be verified first."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Todos",
+      "item": [
+        {
+          "name": "Get All Todos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos?status=all&priority=all&search=",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "description": "Filter by status: all, pending, in_progress, completed"
+                },
+                {
+                  "key": "priority",
+                  "value": "all",
+                  "description": "Filter by priority: all, low, medium, high"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by title or description"
+                }
+              ]
+            },
+            "description": "Get all todos for authenticated user. Supports filtering by status, priority, and search term. Requires valid accessToken."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Todo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete project documentation\",\n  \"description\": \"Write comprehensive documentation for the authentication system including API endpoints, error codes, and usage examples\",\n  \"priority\": \"high\",\n  \"dueDate\": \"2024-12-31\",\n  \"status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos"
+              ]
+            },
+            "description": "Create a new todo. Title is required (max 120 chars), description optional (max 1200 chars). Priority: low, medium, high. Status: pending, in_progress, completed. DueDate format: YYYY-MM-DD. Requires valid accessToken."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Todo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete project documentation (Updated)\",\n  \"description\": \"Updated description\",\n  \"priority\": \"medium\",\n  \"status\": \"in_progress\",\n  \"dueDate\": \"2024-12-25\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos/{{TODO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos",
+                "{{TODO_ID}}"
+              ]
+            },
+            "description": "Update an existing todo. Only provided fields will be updated. Todo ID must be passed in URL path. Requires valid accessToken."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Todo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos/{{TODO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos",
+                "{{TODO_ID}}"
+              ]
+            },
+            "description": "Delete a todo permanently. Todo ID must be passed in URL path. Requires valid accessToken."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "VERIFICATION_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "TODO_ID",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

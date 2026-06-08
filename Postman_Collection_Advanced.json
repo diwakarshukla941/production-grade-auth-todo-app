@@ -1,0 +1,753 @@
+{
+  "info": {
+    "_postman_id": "production-grade-auth-advanced",
+    "name": "Production Grade Auth - Advanced (Auto-Scripts)",
+    "description": "Advanced collection with pre-request scripts and automated token management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{ACCESS_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Setup & Variables",
+      "description": "Setup folder - configure variables here first",
+      "item": [
+        {
+          "name": "0. README - Start Here",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": [
+                "example.com"
+              ]
+            },
+            "description": "IMPORTANT SETUP STEPS:\n\n1. Click on collection name → Variables tab\n2. Set these variables:\n   - BASE_URL: http://localhost:3000\n   - MAIL_TEST_EMAIL: your-test-email@gmail.com\n\n3. Make sure backend is running: npm run dev\n\n4. Now follow the flow:\n   1. Register → Verify Email → Login → Create Todo\n   2. For forgot password: Forgot Password → Verify OTP → Change Password\n\nNote: Some scripts auto-populate tokens. If you see {{ACCESS_TOKEN}} in headers, the login worked correctly."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "Authentication endpoints with auto-scripts",
+      "item": [
+        {
+          "name": "1. Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    const responseData = pm.response.json();",
+                  "    pm.variables.set('REGISTERED_EMAIL', responseData.data.email);",
+                  "    pm.variables.set('REGISTERED_USER_ID', responseData.data._id);",
+                  "    pm.test('Status code is ' + pm.response.code, () => {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
+                  "    });",
+                  "    pm.test('Response is successful', () => {",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"Test User {{$timestamp}}\",\n  \"email\": \"testuser{{$randomInt}}@example.com\",\n  \"password\": \"TestPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/register",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user. Auto-generates unique email. Check response for verification email."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Verify Email",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Get the verification token from email",
+                  "// For testing, you need to extract the token from verification email",
+                  "// Email will be sent to: {{REGISTERED_EMAIL}}",
+                  "// Token will be in the verification link",
+                  "",
+                  "pm.test('Verification token is set', () => {",
+                  "    const token = pm.variables.get('VERIFICATION_TOKEN');",
+                  "    pm.expect(token).to.be.truthy;",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Email verified successfully', () => {",
+                  "        const responseData = pm.response.json();",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{VERIFICATION_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/verify",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify"
+              ]
+            },
+            "description": "Verify email using token from verification email. You must extract token from email first and set VERIFICATION_TOKEN variable."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Login",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Auto-use the registered email from register step",
+                  "const email = pm.variables.get('REGISTERED_EMAIL');",
+                  "if (!email) {",
+                  "    pm.test('Email not found. Run Register first', () => {",
+                  "        pm.expect(false).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    // Auto-set tokens for subsequent requests",
+                  "    pm.variables.set('ACCESS_TOKEN', responseData.accessToken);",
+                  "    pm.variables.set('REFRESH_TOKEN', responseData.refreshToken);",
+                  "    pm.variables.set('LOGGED_IN_USER_ID', responseData.user._id);",
+                  "    pm.variables.set('LOGGED_IN_USERNAME', responseData.user.username);",
+                  "    ",
+                  "    // Also save to environment for persistence across collection runs",
+                  "    pm.environment.set('ACCESS_TOKEN', responseData.accessToken);",
+                  "    pm.environment.set('REFRESH_TOKEN', responseData.refreshToken);",
+                  "    ",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "    pm.test('Access token received', () => {",
+                  "        pm.expect(responseData.accessToken).to.be.truthy;",
+                  "    });",
+                  "} else if (pm.response.code === 403) {",
+                  "    pm.test('User not verified. Run Verify Email first', () => {",
+                  "        pm.expect(false).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{REGISTERED_EMAIL}}\",\n  \"password\": \"TestPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login and auto-populate ACCESS_TOKEN and REFRESH_TOKEN variables. These tokens are used in all subsequent authenticated requests."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    // Clear tokens on logout",
+                  "    pm.variables.set('ACCESS_TOKEN', '');",
+                  "    pm.variables.set('REFRESH_TOKEN', '');",
+                  "    ",
+                  "    pm.test('Logout successful', () => {",
+                  "        const responseData = pm.response.json();",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/logout",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout user. Auto-clears tokens after successful logout."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Forgot Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('OTP sent successfully', () => {",
+                  "        const responseData = pm.response.json();",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "        pm.expect(responseData.message).to.include('Otp sent');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Check email for OTP', () => {",
+                  "        console.log('Check your email for OTP');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{REGISTERED_EMAIL}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/forgot-password",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Send OTP for password reset to registered email. Check email for 6-digit OTP (valid for 10 minutes)."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.variables.set('OTP_VERIFIED', true);",
+                  "    pm.test('OTP verified successfully', () => {",
+                  "        const responseData = pm.response.json();",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/verify-otp/{{REGISTERED_EMAIL}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-otp",
+                "{{REGISTERED_EMAIL}}"
+              ]
+            },
+            "description": "Verify OTP. Replace OTP with the one from your email. Must be done before changing password."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Change Password",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const otpVerified = pm.variables.get('OTP_VERIFIED');",
+                  "if (!otpVerified) {",
+                  "    pm.test('OTP must be verified first. Run Verify OTP request.', () => {",
+                  "        pm.expect(false).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.variables.set('OTP_VERIFIED', false);",
+                  "    pm.test('Password changed successfully', () => {",
+                  "        const responseData = pm.response.json();",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "    pm.test('You can now login with new password', () => {",
+                  "        console.log('Login with new password');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NewPassword456\",\n  \"confirmPassword\": \"NewPassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/change-password/{{REGISTERED_EMAIL}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password",
+                "{{REGISTERED_EMAIL}}"
+              ]
+            },
+            "description": "Change password after OTP verification. Both passwords must match."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Todos",
+      "description": "Todo management endpoints (requires authentication)",
+      "item": [
+        {
+          "name": "1. Get All Todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseData = pm.response.json();",
+                  "    pm.variables.set('TODOS_COUNT', responseData.todos.length);",
+                  "    ",
+                  "    if (responseData.todos.length > 0) {",
+                  "        pm.variables.set('FIRST_TODO_ID', responseData.todos[0]._id);",
+                  "    }",
+                  "    ",
+                  "    pm.test('Got todos successfully', () => {",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "} else if (pm.response.code === 401) {",
+                  "    pm.test('Not authenticated. Run Login first.', () => {",
+                  "        pm.expect(false).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos?status=all&priority=all&search=",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "description": "Filter: all, pending, in_progress, completed"
+                },
+                {
+                  "key": "priority",
+                  "value": "all",
+                  "description": "Filter: all, low, medium, high"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term"
+                }
+              ]
+            },
+            "description": "Get all todos. Supports filtering by status, priority, and search. Auto-saves first todo ID for use in update/delete."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Todo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseData = pm.response.json();",
+                  "    pm.variables.set('CREATED_TODO_ID', responseData.todo._id);",
+                  "    pm.variables.set('LATEST_TODO_ID', responseData.todo._id);",
+                  "    ",
+                  "    pm.test('Todo created successfully', () => {",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "    pm.test('Todo has correct structure', () => {",
+                  "        pm.expect(responseData.todo).to.have.property('_id');",
+                  "        pm.expect(responseData.todo).to.have.property('title');",
+                  "        pm.expect(responseData.todo).to.have.property('status');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Todo {{$timestamp}}\",\n  \"description\": \"This is a test todo description\",\n  \"priority\": \"high\",\n  \"status\": \"pending\",\n  \"dueDate\": \"2024-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos"
+              ]
+            },
+            "description": "Create a new todo. Auto-saves created todo ID for use in update/delete requests. Title is required (max 120 chars)."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Update Todo",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const todoId = pm.variables.get('LATEST_TODO_ID') || pm.variables.get('FIRST_TODO_ID');",
+                  "if (!todoId) {",
+                  "    pm.test('No todo found. Create a todo first with Create Todo request.', () => {",
+                  "        pm.expect(false).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseData = pm.response.json();",
+                  "    pm.test('Todo updated successfully', () => {",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "    pm.test('Updated fields are reflected', () => {",
+                  "        pm.expect(responseData.todo.status).to.equal('in_progress');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos/{{LATEST_TODO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos",
+                "{{LATEST_TODO_ID}}"
+              ]
+            },
+            "description": "Update a todo (partial update). Auto-uses last created todo. Modify only the fields you want to update."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Delete Todo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.variables.set('LATEST_TODO_ID', '');",
+                  "    pm.test('Todo deleted successfully', () => {",
+                  "        const responseData = pm.response.json();",
+                  "        pm.expect(responseData.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/todos/{{LATEST_TODO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "todos",
+                "{{LATEST_TODO_ID}}"
+              ]
+            },
+            "description": "Delete a todo permanently. Auto-uses last created todo ID."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "VERIFICATION_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REGISTERED_EMAIL",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REGISTERED_USER_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "LOGGED_IN_USER_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "LOGGED_IN_USERNAME",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "CREATED_TODO_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "LATEST_TODO_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "FIRST_TODO_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "TODOS_COUNT",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "OTP_VERIFIED",
+      "value": "false",
+      "type": "string"
+    }
+  ]
+}

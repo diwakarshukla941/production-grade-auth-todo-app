@@ -1,0 +1,38 @@
+# Dependencies
+frontend/node_modules/
+backend/node_modules/
+
+# Environment Variables
+.env
+.env.*
+frontend/.env
+backend/.env
+
+# Build Output
+frontend/dist/
+frontend/build/
+backend/dist/
+backend/build/
+
+# Documentation
+CODE_CHANGES.md
+INTELLIGENT_REGISTRATION_GUIDE.md
+POSTMAN_GUIDE.md
+POSTMAN_QUICK_REFERENCE.md
+POSTMAN_SETUP.md
+REGISTRATION_FLOW_DIAGRAM.md
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
