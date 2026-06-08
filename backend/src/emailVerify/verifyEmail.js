@@ -39,8 +39,14 @@ export const verifyEmail = async (token, email) => {
       },
     });
 
+    console.log("Before transporter.verify()");
+
     await transporter.verify();
+
+    console.log("After transporter.verify()");
     console.log("SMTP connection successful");
+
+    console.log("Before sendMail()");
 
     const info = await transporter.sendMail({
       from: process.env.MAIL_USER,
@@ -49,13 +55,16 @@ export const verifyEmail = async (token, email) => {
       html: htmlToSend,
     });
 
+    console.log("After sendMail()");
     console.log("Email sent successfully");
     console.log("Message ID:", info.messageId);
 
     return true;
   } catch (error) {
-    console.error("Full Email Error:");
+    console.error("=========== EMAIL ERROR ===========");
     console.error(error);
+    console.error("===================================");
+
     return false;
   }
 };
