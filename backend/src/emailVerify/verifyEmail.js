@@ -31,8 +31,8 @@ export const verifyEmail = async (token, email) => {
 
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
@@ -40,14 +40,10 @@ export const verifyEmail = async (token, email) => {
     });
 
     console.log("Before transporter.verify()");
-
     await transporter.verify();
-
-    console.log("After transporter.verify()");
     console.log("SMTP connection successful");
 
     console.log("Before sendMail()");
-
     const info = await transporter.sendMail({
       from: process.env.MAIL_USER,
       to: email,
