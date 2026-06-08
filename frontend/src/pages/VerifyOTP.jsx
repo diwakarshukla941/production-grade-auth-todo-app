@@ -6,6 +6,7 @@ import axios from 'axios'
 import { CheckCircle, Loader2, RotateCcw } from 'lucide-react'
 import React, { useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { API_BASE_URL } from "@/config/api";
 
 const VerifyOTP = () => {
   const [isVerified, setIsVerified] = useState(false)
@@ -37,7 +38,7 @@ const VerifyOTP = () => {
 
     try {
       setIsLoading(true)
-      const res = await axios.post(`http://localhost:3000/api/auth/verify-otp/${email}`, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/verify-otp/${email}`, {
         otp: finalOtp,
       })
       setSuccessMessage(res.data.message)

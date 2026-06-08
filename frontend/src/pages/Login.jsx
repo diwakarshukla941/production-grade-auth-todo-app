@@ -16,6 +16,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserContext } from '@/Context/UserContext'
+import { API_BASE_URL } from '@/config/api'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -44,7 +45,7 @@ const Login = () => {
 
     try {
       setIsLoading(true)
-      const res = await axios.post(`http://localhost:3000/api/auth/login`, formData, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, formData, {
         headers: {
           "Content-Type": "application/json"
         }

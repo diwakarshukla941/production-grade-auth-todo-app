@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Loader2 } from 'lucide-react'
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { API_BASE_URL } from "@/config/api";
 
 const ChangePassword = () => {
     const { email } = useParams()
@@ -30,7 +31,7 @@ const ChangePassword = () => {
 
         try {
             setIsLoading(true)
-            const res = await axios.patch(`http://localhost:3000/api/auth/change-password/${email}`, {
+            const res = await axios.patch(`${API_BASE_URL}/api/auth/change-password/${email}`, {
                 newPassword,
                 confirmPassword
             })

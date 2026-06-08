@@ -1,21 +1,43 @@
-import express from 'express'
-import connectDB from './src/database/db.js';
-const app = express()
-import userRoute from './src/routes/user.routes.js'
-import todoRoute from './src/routes/todo.routes.js'
-import 'dotenv/config';
-import cors from 'cors';
+import express from "express";
+import connectDB from "./src/database/db.js";
+import userRoute from "./src/routes/user.routes.js";
+import todoRoute from "./src/routes/todo.routes.js";
+import cors from "cors";
+import "dotenv/config";
 
-app.use(express.json())
-app.use(cors());
+const app = express();
 
- const PORT = process.env.PORT
-
+// Database Connection
 connectDB();
 
-app.use('/api/auth', userRoute)
-app.use('/api/todos', todoRoute)
+// Middleware
+app.use(express.json());
+
+app.use(
+    cors({
+        origin: [
+            "http://localhost:5173",
+            process.env.CLIENT_URL,
+        ],
+        credentials: true,
+    })
+);
+
+// Health Check Route
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Server is running",
+    });
+});
+
+// Routes
+app.use("/api/auth", userRoute);
+app.use("/api/todos", todoRoute);
+
+// Start Server
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}`)
-})
+    console.log(`Server running on port ${PORT}`);
+});

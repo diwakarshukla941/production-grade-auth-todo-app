@@ -1,7 +1,7 @@
 import React from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Home from './pages/Home'
-import SignUp from './pages/SignUp'
+import SignUp from './pages/Signup'
 import Login from './pages/Login'
 import VerifyEmail from './pages/VerifyEmail'
 import Verify from './pages/Verify'
