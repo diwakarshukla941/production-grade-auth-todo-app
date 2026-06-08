@@ -1,9 +1,11 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import handlebars from "handlebars";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const __fileName = fileURLToPath(import.meta.url);
 const __dir = path.dirname(__fileName);
@@ -29,38 +31,24 @@ export const verifyEmail = async (token, email) => {
       token: encodeURIComponent(token),
     });
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
-
-    console.log("Before transporter.verify()");
-    await transporter.verify();
-    console.log("SMTP connection successful");
-
-    console.log("Before sendMail()");
-    const info = await transporter.sendMail({
-      from: process.env.MAIL_USER,
+    const { data, error } = await resend.emails.send({
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Email Verification",
       html: htmlToSend,
     });
 
-    console.log("After sendMail()");
+    if (error) {
+      console.error("Resend Error:", error);
+      return false;
+    }
+
     console.log("Email sent successfully");
-    console.log("Message ID:", info.messageId);
+    console.log(data);
 
     return true;
   } catch (error) {
-    console.error("=========== EMAIL ERROR ===========");
-    console.error(error);
-    console.error("===================================");
-
+    console.error("Email Error:", error);
     return false;
   }
 };
