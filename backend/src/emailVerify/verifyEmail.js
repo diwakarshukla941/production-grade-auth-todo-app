@@ -1,26 +1,14 @@
-import { MailtrapClient } from "mailtrap";
+import nodemailer from "nodemailer";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import handlebars from "handlebars";
 
-const client = new MailtrapClient({
-  token: process.env.MAILTRAP_TOKEN,
-});
-
-const sender = {
-  email: "hello@demomailtrap.co",
-  name: "ProdAuthTodo",
-};
-
 const __fileName = fileURLToPath(import.meta.url);
 const __dir = path.dirname(__fileName);
 
 export const verifyEmail = async (token, email) => {
-  console.log("verifyEmail called");
-  console.log("Sending mail to:", email);
-
   try {
     const emailTemplateSource = fs.readFileSync(
       path.join(__dir, "template.hbs"),
@@ -38,20 +26,29 @@ export const verifyEmail = async (token, email) => {
       token: encodeURIComponent(token),
     });
 
-    const response = await client.send({
-      from: sender,
-      to: [{ email }],
-      subject: "Email Verification",
-      html: htmlToSend,
-      category: "Email Verification",
+    const transporter = nodemailer.createTransport({
+      host: process.env.BREVO_SMTP_HOST,
+      port: process.env.BREVO_SMTP_PORT,
+      secure: false,
+      auth: {
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_PASS,
+      },
     });
 
-    console.log("Verification email sent successfully");
-    console.log(response);
+    const info = await transporter.sendMail({
+      from: `"ProdAuthTodo" <${process.env.BREVO_SMTP_USER}>`,
+      to: email,
+      subject: "Email Verification",
+      html: htmlToSend,
+    });
+
+    console.log("Verification email sent");
+    console.log(info.messageId);
 
     return true;
   } catch (error) {
-    console.error("Mailtrap Error:", error);
+    console.error("Email Error:", error);
     return false;
   }
 };

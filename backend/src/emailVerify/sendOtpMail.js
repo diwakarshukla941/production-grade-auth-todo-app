@@ -1,20 +1,21 @@
-import { MailtrapClient } from "mailtrap";
+import nodemailer from "nodemailer";
 import "dotenv/config";
-
-const client = new MailtrapClient({
-  token: process.env.MAILTRAP_TOKEN,
-});
-
-const sender = {
-  email: "hello@demomailtrap.co",
-  name: "ProdAuthTodo",
-};
 
 export const sendOtpMail = async (email, otp) => {
   try {
-    const response = await client.send({
-      from: sender,
-      to: [{ email }],
+    const transporter = nodemailer.createTransport({
+      host: process.env.BREVO_SMTP_HOST,
+      port: process.env.BREVO_SMTP_PORT,
+      secure: false,
+      auth: {
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_PASS,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: `"ProdAuthTodo" <${process.env.BREVO_SMTP_USER}>`,
+      to: email,
       subject: "Password Reset OTP",
       html: `
         <h2>Password Reset Request</h2>
@@ -22,15 +23,14 @@ export const sendOtpMail = async (email, otp) => {
         <h1>${otp}</h1>
         <p>This OTP is valid for 10 minutes.</p>
       `,
-      category: "Password Reset",
     });
 
-    console.log("OTP email sent successfully");
-    console.log(response);
+    console.log("OTP email sent");
+    console.log(info.messageId);
 
     return true;
   } catch (error) {
-    console.error("Mailtrap Error:", error);
+    console.error("OTP Email Error:", error);
     return false;
   }
 };
