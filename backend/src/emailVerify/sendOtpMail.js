@@ -1,36 +1,42 @@
-import nodemailer from "nodemailer";
+import axios from "axios";
 import "dotenv/config";
 
 export const sendOtpMail = async (email, otp) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.BREVO_SMTP_HOST,
-      port: process.env.BREVO_SMTP_PORT,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_SMTP_USER,
-        pass: process.env.BREVO_SMTP_PASS,
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "ProdAuthTodo",
+          email: "shukladiwakar941@gmail.com", // verified sender
+        },
+        to: [{ email }],
+        subject: "Password Reset OTP",
+        htmlContent: `
+          <h2>Password Reset Request</h2>
+          <p>Your OTP for password reset is:</p>
+          <h1>${otp}</h1>
+          <p>This OTP is valid for 10 minutes.</p>
+        `,
       },
-    });
-
-    const info = await transporter.sendMail({
-      from: `"ProdAuthTodo" <${process.env.BREVO_SMTP_USER}>`,
-      to: email,
-      subject: "Password Reset OTP",
-      html: `
-        <h2>Password Reset Request</h2>
-        <p>Your OTP for password reset is:</p>
-        <h1>${otp}</h1>
-        <p>This OTP is valid for 10 minutes.</p>
-      `,
-    });
+      {
+        headers: {
+          accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+        },
+      }
+    );
 
     console.log("OTP email sent");
-    console.log(info.messageId);
+    console.log(response.data);
 
     return true;
   } catch (error) {
-    console.error("OTP Email Error:", error);
+    console.error(
+      "Brevo Error:",
+      error.response?.data || error.message
+    );
     return false;
   }
 };

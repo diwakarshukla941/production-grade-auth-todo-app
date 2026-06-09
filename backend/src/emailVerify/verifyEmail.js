@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import axios from "axios";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
@@ -26,29 +26,35 @@ export const verifyEmail = async (token, email) => {
       token: encodeURIComponent(token),
     });
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.BREVO_SMTP_HOST,
-      port: process.env.BREVO_SMTP_PORT,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_SMTP_USER,
-        pass: process.env.BREVO_SMTP_PASS,
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "ProdAuthTodo",
+          email: "shukladiwakar941@gmail.com", // verified sender
+        },
+        to: [{ email }],
+        subject: "Email Verification",
+        htmlContent: htmlToSend,
       },
-    });
-
-    const info = await transporter.sendMail({
-      from: `"ProdAuthTodo" <${process.env.BREVO_SMTP_USER}>`,
-      to: email,
-      subject: "Email Verification",
-      html: htmlToSend,
-    });
+      {
+        headers: {
+          accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+        },
+      }
+    );
 
     console.log("Verification email sent");
-    console.log(info.messageId);
+    console.log(response.data);
 
     return true;
   } catch (error) {
-    console.error("Email Error:", error);
+    console.error(
+      "Brevo Error:",
+      error.response?.data || error.message
+    );
     return false;
   }
 };
