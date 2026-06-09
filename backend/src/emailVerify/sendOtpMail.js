@@ -1,13 +1,20 @@
-import { Resend } from "resend";
+import { MailtrapClient } from "mailtrap";
 import "dotenv/config";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const client = new MailtrapClient({
+  token: process.env.MAILTRAP_TOKEN,
+});
+
+const sender = {
+  email: "hello@demomailtrap.co",
+  name: "ProdAuthTodo",
+};
 
 export const sendOtpMail = async (email, otp) => {
   try {
-    const { data, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
+    const response = await client.send({
+      from: sender,
+      to: [{ email }],
       subject: "Password Reset OTP",
       html: `
         <h2>Password Reset Request</h2>
@@ -15,19 +22,15 @@ export const sendOtpMail = async (email, otp) => {
         <h1>${otp}</h1>
         <p>This OTP is valid for 10 minutes.</p>
       `,
+      category: "Password Reset",
     });
 
-    if (error) {
-      console.error("Resend Error:", error);
-      return false;
-    }
-
     console.log("OTP email sent successfully");
-    console.log(data);
+    console.log(response);
 
     return true;
   } catch (error) {
-    console.error("OTP Email Error:", error);
+    console.error("Mailtrap Error:", error);
     return false;
   }
 };

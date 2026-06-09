@@ -1,11 +1,18 @@
-import { Resend } from "resend";
+import { MailtrapClient } from "mailtrap";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import handlebars from "handlebars";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const client = new MailtrapClient({
+  token: process.env.MAILTRAP_TOKEN,
+});
+
+const sender = {
+  email: "hello@demomailtrap.co",
+  name: "ProdAuthTodo",
+};
 
 const __fileName = fileURLToPath(import.meta.url);
 const __dir = path.dirname(__fileName);
@@ -31,24 +38,20 @@ export const verifyEmail = async (token, email) => {
       token: encodeURIComponent(token),
     });
 
-    const { data, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
+    const response = await client.send({
+      from: sender,
+      to: [{ email }],
       subject: "Email Verification",
       html: htmlToSend,
+      category: "Email Verification",
     });
 
-    if (error) {
-      console.error("Resend Error:", error);
-      return false;
-    }
-
-    console.log("Email sent successfully");
-    console.log(data);
+    console.log("Verification email sent successfully");
+    console.log(response);
 
     return true;
   } catch (error) {
-    console.error("Email Error:", error);
+    console.error("Mailtrap Error:", error);
     return false;
   }
 };
