@@ -403,7 +403,7 @@ These collections contain ready-to-use requests for testing all authentication a
 
 # Author
 
-Diwakar Shukla
+Diwakar Shukla.
 
 ---
 
