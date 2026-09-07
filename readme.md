@@ -8,6 +8,8 @@ A full-stack MERN application featuring secure authentication, email verificatio
 
 ## Features
 
+
+
 ### Authentication -> 
 * User Registration
 * Email Verification via JWT Token
